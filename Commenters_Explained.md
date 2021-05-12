@@ -1,35 +1,13 @@
 ---
 title: "Technical Comments"
 author: "Steven Rashin"
-date: "`r format(Sys.time(), '%B %d, %Y')`"
+date: "May 12, 2021"
 output:
   html_document:
     keep_md: TRUE
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = F,cache = F, message = F)
 
-library(tidyverse)
-library(quanteda)
-library(ggforce)
-
-setwd("/Users/stevenrashin/Documents/GitHub/Sophisticated_Commenters/")
-
-# Load data
-load("/Users/stevenrashin/Dropbox/Fake Comments/Data/SEC_Comments.RData")
-
-# Load dictionaries
-load(file = "/Users/stevenrashin/Dropbox/Fake Comments/Data/OED_Law.RData")
-#load(file = "/Users/stevenrashin/Dropbox/Fake Comments/Data/OED_Finance.RData")
-load(file = "/Users/stevenrashin/Dropbox/Fake Comments/Data/OED_Finance_5thed.RData")
-load(file = "/Users/stevenrashin/Dropbox/Fake Comments/Data/MW_Law.RData")
-
-blacks_law_dict <- readLines("https://raw.githubusercontent.com/nathanReitinger/Blacks8-Mac-Dictionary/master/dictionary(source%20code)/objects/entry_body_list.txt")
-blacks_law_dict <- gsub(pattern = "\\t.{1,}$", replacement = "",x = blacks_law_dict)
-
-banking_us_law_overlap <- intersect(unlist(OED_Finance[,1]), unlist(MW_Law[,1]))
-```
 
 ## Evaluating the Dictionaries
 
@@ -37,9 +15,10 @@ To show that commenters are using technical language, we need dictionaries for f
 
 ### OED Finance Dictionary
 
-The figure below takes the first letter of each word and plots them in a histogram.  This is a good test to see whether there are any missing letters or strange patterns to investigate.  There are `r length(OED_Finance$terms)` terms.
+The figure below takes the first letter of each word and plots them in a histogram.  This is a good test to see whether there are any missing letters or strange patterns to investigate.  There are 5260 terms.
 
-```{r OED Finance}
+
+```r
 OED_Finance %>%
   mutate(first_letter = str_match(string = terms, pattern = "^.{1}")[,1],
          first_letter = tolower(first_letter)) %>%
@@ -56,13 +35,15 @@ OED_Finance %>%
   xlab("First letter of each word") + ylab("Count") 
 ```
 
+![](Commenters_Explained_files/figure-html/OED Finance-1.png)<!-- -->
+
 
 ### Law Dictionaries: Merriam-Webster 
 
-The code chunks below show histograms of the Merriam-Webster and Black's law dictionaries.  Note that although Blacks has `r length(blacks_law_dict) - length(MW_Law$.)` more terms (Black's has `r length(blacks_law_dict)` and Merriam-Webster has `r length(MW_Law$.)`), Merriam-Webster is missing many fewer terms.
+The code chunks below show histograms of the Merriam-Webster and Black's law dictionaries.  Note that although Blacks has 11133 more terms (Black's has 21305 and Merriam-Webster has 10172), Merriam-Webster is missing many fewer terms.
 
-```{r MW Law}
 
+```r
 MW_Law %>%
   rename(terms = ".") %>%
   mutate(first_letter = str_match(string = terms, pattern = "^.{1}")[,1],
@@ -80,7 +61,10 @@ MW_Law %>%
   xlab("First letter of each word") + ylab("Count") 
 ```
 
-```{r Blacks}
+![](Commenters_Explained_files/figure-html/MW Law-1.png)<!-- -->
+
+
+```r
 #' Github implementation of Black's law dictionary missing terms!
 blacks_law_dict %>%  
   tibble() %>%
@@ -98,16 +82,18 @@ blacks_law_dict %>%
        caption = "(Source github.com)") +
   theme(plot.title = element_text(hjust = 0.5)) +
   xlab("First letter of each word") + ylab("Count")
-
 ```
+
+![](Commenters_Explained_files/figure-html/Blacks-1.png)<!-- -->
 
 ## Law and Finance Overlap
 
-There are `r length(banking_us_law_overlap)`terms that appear in both the law and banking dictionaries.  To prevent commenters from getting double credit for using these terms we put these terms in a separate dictionary and subtract the count from the sum of the law and banking terms.  That is, if a comment has 30 law and 50 banking terms but 10 are from the above list, we credit the commenter with 70 unique terms (30 + 50 - 10 as the 10 is counted in both the 30 and the 50).  
+There are 669terms that appear in both the law and banking dictionaries.  To prevent commenters from getting double credit for using these terms we put these terms in a separate dictionary and subtract the count from the sum of the law and banking terms.  That is, if a comment has 30 law and 50 banking terms but 10 are from the above list, we credit the commenter with 70 unique terms (30 + 50 - 10 as the 10 is counted in both the 30 and the 50).  
 
 Below I show an example of the implementation of the dctionary using a sample of ten comments from each rule promulgated by the SEC from 1995-2020.  
 
-```{r implementation of dictionary}
+
+```r
 techincal_dict <- dictionary(list(UK_law = unlist(OED_Law[,1]),
                           banking = unlist(OED_Finance[,1]),
                           US_law = unlist(MW_Law[,1]),
@@ -139,7 +125,8 @@ technical_terms <- convert(x = dictionary_dfm, to = "data.frame") %>%
 
 In the tables below medians are in red and means are in blue.  
 
-```{r}
+
+```r
 #' Show Distribution of Technical Terms
 #' Median is red, Mean is blue
 library("gridExtra")   
@@ -181,13 +168,15 @@ Zoomed <- technical_terms %>%
   stat_summary(fun=mean, geom="point", size=2, color ="blue")
 
 grid.arrange(Full, Zoomed, ncol = 2)     
-
 ```
+
+![](Commenters_Explained_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
 
 The functions to count tables and figures are below.  The strings to instances function makes an adjustment for poorly formatted table numbering when OCR'd text shows a year or a page number after a figure (e.g., Figure 2015).  The function takes a sequence of numbers such as c(1, 2, 2015) and will see differences of 1 and 2013 between the terms and will throw out any number not within one of the previous number.  So in the example above, we have two tables, not three or 2015.
 
 
-```{r show functions}
+
+```r
 #' Now we have technical terms, by doc_id 
 #' Now do Figures and Tables
 strings_to_instances <- function(unique_instances_in_order){
@@ -315,7 +304,8 @@ lookup_numbered_fcn <- function(txt, rgex){
 } 
 ```
 
-```{r}
+
+```r
 #' Now we have technical terms, by doc_id 
 #' Now do Figures and Tables
 
@@ -340,7 +330,11 @@ Tables_and_Figures %>%
   xlab("Visual Elements") + ylab("Count") +
   stat_summary(fun=median, geom="point", size=2, color="red") +
   stat_summary(fun=mean, geom="point", size=2, color ="blue")
+```
 
+![](Commenters_Explained_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+
+```r
 #' Now Show Everything In One Plot
 tech_in_one_column <- technical_terms %>%
   rename(CommentID = doc_id) %>%
@@ -356,7 +350,8 @@ tech_in_one_column <- technical_terms %>%
   group_by(Technical_Features) 
 ```
 
-```{r table}
+
+```r
 #' Show summary statistics for all technical features
 library(kableExtra)
 tech_table <- tech_in_one_column %>%
@@ -372,10 +367,113 @@ tech_table <- tech_in_one_column %>%
 
 knitr::kable(tech_table) %>%
   kable_styling(bootstrap_options = c("striped", "hover"))
-
 ```
 
-```{r plots}
+<table class="table table-striped table-hover" style="margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:left;"> Technical_Features </th>
+   <th style="text-align:right;"> n </th>
+   <th style="text-align:right;"> min </th>
+   <th style="text-align:right;"> Q1 </th>
+   <th style="text-align:right;"> median </th>
+   <th style="text-align:right;"> Q3 </th>
+   <th style="text-align:right;"> Q90 </th>
+   <th style="text-align:right;"> Q95 </th>
+   <th style="text-align:right;"> Q99 </th>
+   <th style="text-align:right;"> max </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> Banking </td>
+   <td style="text-align:right;"> 3080 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 15 </td>
+   <td style="text-align:right;"> 61.0 </td>
+   <td style="text-align:right;"> 196 </td>
+   <td style="text-align:right;"> 444.1 </td>
+   <td style="text-align:right;"> 707.2 </td>
+   <td style="text-align:right;"> 2195.72 </td>
+   <td style="text-align:right;"> 22705 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Dictionary Terms </td>
+   <td style="text-align:right;"> 3080 </td>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:right;"> 45 </td>
+   <td style="text-align:right;"> 192.0 </td>
+   <td style="text-align:right;"> 586 </td>
+   <td style="text-align:right;"> 1306.0 </td>
+   <td style="text-align:right;"> 2088.5 </td>
+   <td style="text-align:right;"> 6290.38 </td>
+   <td style="text-align:right;"> 35518 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Figures </td>
+   <td style="text-align:right;"> 3080 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 0.0 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 0.0 </td>
+   <td style="text-align:right;"> 0.0 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 14 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Overlap </td>
+   <td style="text-align:right;"> 3080 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 10 </td>
+   <td style="text-align:right;"> 43.0 </td>
+   <td style="text-align:right;"> 143 </td>
+   <td style="text-align:right;"> 326.0 </td>
+   <td style="text-align:right;"> 517.0 </td>
+   <td style="text-align:right;"> 1560.18 </td>
+   <td style="text-align:right;"> 11313 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Tables </td>
+   <td style="text-align:right;"> 3080 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 0.0 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 0.0 </td>
+   <td style="text-align:right;"> 0.0 </td>
+   <td style="text-align:right;"> 1.00 </td>
+   <td style="text-align:right;"> 35 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> US Law </td>
+   <td style="text-align:right;"> 3080 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 41 </td>
+   <td style="text-align:right;"> 173.5 </td>
+   <td style="text-align:right;"> 537 </td>
+   <td style="text-align:right;"> 1167.1 </td>
+   <td style="text-align:right;"> 1934.1 </td>
+   <td style="text-align:right;"> 5815.04 </td>
+   <td style="text-align:right;"> 24587 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Visualizations </td>
+   <td style="text-align:right;"> 3080 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 0.0 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 0.0 </td>
+   <td style="text-align:right;"> 0.0 </td>
+   <td style="text-align:right;"> 2.00 </td>
+   <td style="text-align:right;"> 49 </td>
+  </tr>
+</tbody>
+</table>
+
+
+```r
 #' Show plot
 tech_in_one_column %>%
   mutate(Technical_Features = factor(Technical_Features, levels=c("US Law", "Banking", "Overlap", "Dictionary Terms",
@@ -389,5 +487,6 @@ tech_in_one_column %>%
   xlab("Visual Elements") + ylab("Count") +
   stat_summary(fun=median, geom="point", size=2, color="red") +
   stat_summary(fun=mean, geom="point", size=2, color ="blue")
-
 ```
+
+![](Commenters_Explained_files/figure-html/plots-1.png)<!-- -->
