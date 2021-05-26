@@ -13,11 +13,23 @@ knitr::opts_chunk$set(echo = TRUE, warning = F,cache = F, message = F)
 library(tidyverse)
 library(quanteda)
 library(ggforce)
+library(grid)
+library(gridExtra)
 
 setwd("/Users/stevenrashin/Documents/GitHub/Sophisticated_Commenters/")
 
 # Load data
 load("/Users/stevenrashin/Dropbox/Fake Comments/Data/SEC_Comments.RData")
+
+library(DBI)
+library(RSQLite)
+master_location <- "/Users/stevenrashin/Dropbox/FINREG-RULEMAKE/attachments.sqlite"
+con = dbConnect(SQLite(), dbname=master_location)
+alltables = dbListTables(con)
+alltables
+myQuery <- dbSendQuery(con, "SELECT * FROM attachments")
+attachments <- dbFetch(myQuery, n = -1)
+attachments <- attachments %>% tibble()
 
 # Load dictionaries
 load(file = "/Users/stevenrashin/Dropbox/Fake Comments/Data/OED_Law.RData")
@@ -107,42 +119,106 @@ There are `r length(banking_us_law_overlap)`terms that appear in both the law an
 
 Below I show an example of the implementation of the dctionary using a sample of ten comments from each rule promulgated by the SEC from 1995-2020.  
 
-```{r implementation of dictionary}
+```{r implementation of dictionary, eval = F}
 techincal_dict <- dictionary(list(UK_law = unlist(OED_Law[,1]),
                           banking = unlist(OED_Finance[,1]),
                           US_law = unlist(MW_Law[,1]),
                           Overlap = (banking_us_law_overlap)))
 
-# take comments, put into corpus, tokenize them, count the tokens, and display results
-text_and_id <- SEC_Comments_full %>%
-  select(CommentID, text, File_No) %>%
-  distinct(CommentID, .keep_all = T) %>%
-  group_by(File_No) %>%
-  add_tally() %>%
-  filter(n>=10) %>%
-  sample_n(size = 10, replace = F)
+# problem, dataset is too big for dfm, so split into smaller sets 
+num_groups = 1000
+text_and_id <- attachments %>%
+  select(attachment_text, comment_url) %>%
+  distinct(comment_url, .keep_all = T) %>%
+  group_by((row_number()-1) %/% (n()/num_groups)) %>%
+  nest %>% pull(data)
 
-dictionary_corpus <- corpus(x = text_and_id$text, docnames = text_and_id$CommentID)  
+technical_terms <- tibble()
+iteration_stats <- tibble()
 
-dictionary_dfm <- dictionary_corpus %>%
-  tokens() %>%
-  tokens_lookup(dictionary = techincal_dict ) %>%
-  dfm() 
+# issue https://www.regulations.gov/document/CFPB-2016-0025-199792 is 500 bundled
+# comments.  so comes off highly in measures but not actually super sophisticated
 
-#' Tech sophistication is law + banking - overlap
-#' Suppose you have 12 banking and 50 law terms, if there are 7 in both
-#' you overcount the technical terms by 7
-technical_terms <- convert(x = dictionary_dfm, to = "data.frame") %>%
-  tibble() %>%
-  mutate(dictionary_terms = banking + us_law - overlap)
+for(i in 1:1000){
+  
+  cat(c(paste("On iteration ", i, " of 1,000")), sep = "\n")
+  
+  time.start = Sys.time()
+  
+  temp_text_ID_frame <- text_and_id[[i]]
+  
+  dictionary_corpus <- corpus(x = temp_text_ID_frame$attachment_text, docnames = temp_text_ID_frame$comment_url)  
+  
+  dictionary_dfm <- dictionary_corpus %>%
+    tokens() %>%
+    tokens_lookup(dictionary = techincal_dict ) %>%
+    dfm() 
+  
+  technical_terms_temp <- convert(x = dictionary_dfm, to = "data.frame") %>%
+    tibble() %>%
+    mutate(dictionary_terms = banking + us_law - overlap)
+  
+  technical_terms <- technical_terms %>%
+    dplyr::bind_rows(technical_terms_temp)
+  
+  #stats about distribution of length
+  
+  time.end = Sys.time()
+  
+  iteration_temp_stats <- unlist(lapply(X = temp_text_ID_frame$attachment_text, FUN = nchar)) %>%
+    tibble() %>%
+    summarise(n = length(temp_text_ID_frame$attachment_text),
+            min = fivenum(.)[1],
+            Q1 = fivenum(.)[2],
+            median = fivenum(.)[3],
+            Q3 = fivenum(.)[4],
+            Q90 = quantile(., 0.9, na.rm = T),
+            Q99 = quantile(., 0.99, na.rm = T),
+            max = fivenum(.)[5]) %>%
+    mutate(
+      time = time.end - time.start,
+      iteration = i 
+    )
+
+  iteration_stats <- iteration_stats %>%
+    bind_rows(iteration_temp_stats)
+}
+save(technical_terms, iteration_stats, file = "/Users/stevenrashin/Documents/GitHub/Sophisticated_Commenters/tech_iterations.RData")
+
+```
+
+## Performance of Classifiers
+
+```{r show time}
+load("/Users/stevenrashin/Documents/GitHub/Sophisticated_Commenters/tech_iterations.RData")
+
+max_length <- iteration_stats %>%
+  ggplot(aes(x = max, y = time)) +
+  geom_point() +
+  theme_minimal() +
+  labs(title = "Max") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Max Comment Length (Characters)") + ylab("Time (Seconds)") 
+
+median_length <- iteration_stats %>%
+  ggplot(aes(x = median, y = time)) +
+  geom_point() +
+  theme_minimal() +
+  labs(title = "Median") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Median Comment Length (Characters)") + ylab("Time (Seconds)") 
+
+grid.arrange(max_length, median_length, ncol = 2,
+             top = textGrob("Max and Median Length and Iteration Time",gp=gpar(fontsize=20,font=1)))     
+
 ```
 
 In the tables below medians are in red and means are in blue.  
 
+
 ```{r}
 #' Show Distribution of Technical Terms
 #' Median is red, Mean is blue
-library("gridExtra")   
 
 Full <- technical_terms %>%
   select(-uk_law) %>%
@@ -156,8 +232,8 @@ Full <- technical_terms %>%
   geom_violin(position="dodge", alpha=0.5) +
   theme_minimal() +
   coord_flip() +
-  labs(title = "Distribution of Law and Banking Terms") +
-  theme(plot.title = element_text(hjust = 0.5)) +
+  labs(title = "A") +
+  #theme(plot.title = element_text(hjust = 0.5)) +
   xlab("Dictionary") + ylab("Count") +
   stat_summary(fun=median, geom="point", size=2, color="red") +
   stat_summary(fun=mean, geom="point", size=2, color ="blue")
@@ -174,18 +250,19 @@ Zoomed <- technical_terms %>%
   geom_violin(position="dodge", alpha=0.5) +
   theme_minimal() +
   coord_flip(ylim = c(0, 300)) +
-  labs(title = "Distribution of Law and Banking Terms") +
-  theme(plot.title = element_text(hjust = 0.5)) +
+  labs(title = "B") +
+  #theme(plot.title = element_text(hjust = 0.5)) +
   xlab("Dictionary") + ylab("Count") +
   stat_summary(fun=median, geom="point", size=2, color="red") +
   stat_summary(fun=mean, geom="point", size=2, color ="blue")
 
-grid.arrange(Full, Zoomed, ncol = 2)     
+
+grid.arrange(Full, Zoomed, ncol = 2,
+             top = textGrob("Distribution of Law and Banking Terms",gp=gpar(fontsize=20,font=1)))     
 
 ```
 
 The functions to count tables and figures are below.  The strings to instances function makes an adjustment for poorly formatted table numbering when OCR'd text shows a year or a page number after a figure (e.g., Figure 2015).  The function takes a sequence of numbers such as c(1, 2, 2015) and will see differences of 1 and 2013 between the terms and will throw out any number not within one of the previous number.  So in the example above, we have two tables, not three or 2015.
-
 
 ```{r show functions}
 #' Now we have technical terms, by doc_id 
@@ -319,17 +396,17 @@ lookup_numbered_fcn <- function(txt, rgex){
 #' Now we have technical terms, by doc_id 
 #' Now do Figures and Tables
 
-Tables_and_Figures <- SEC_Comments_full %>%
-  mutate(figures = purrr::map2_dbl(.f = lookup_numbered_fcn, .x = text, .y = "([Ff]igure)\\s{1,}(\\w{1,}\\.{1}\\w{1,}|\\w{1,})"),
-         tables  = purrr::map2_dbl(.f = lookup_numbered_fcn, .x = text, .y = "([Tt]able)\\s{1,}(\\w{1,}\\.{1}\\w{1,}|\\w{1,})")) %>%
-  select(CommentID, figures, tables) %>%
+Tables_and_Figures <- attachments %>%
+  mutate(figures = purrr::map2_dbl(.f = lookup_numbered_fcn, .x = attachment_text, .y = "([Ff]igure)\\s{1,}(\\w{1,}\\.{1}\\w{1,}|\\w{1,})"),
+         tables  = purrr::map2_dbl(.f = lookup_numbered_fcn, .x = attachment_text, .y = "([Tt]able)\\s{1,}(\\w{1,}\\.{1}\\w{1,}|\\w{1,})")) %>%
+  select(comment_url, figures, tables) %>%
   mutate(`Visualizations` = tables + figures)
 
 #' Show Tables
 Tables_and_Figures %>%
   rename(Figures = figures,
          Tables = tables) %>%
-  gather(terms, val, -CommentID) %>%
+  gather(terms, val, -comment_url) %>%
   mutate(terms = factor(terms, levels=c("Figures", "Tables", "Visualizations"))) %>%
   ggplot(aes(y=val, x=forcats::fct_rev(factor(terms)))) + 
   geom_violin(position="dodge", alpha=0.5) +
@@ -343,8 +420,8 @@ Tables_and_Figures %>%
 
 #' Now Show Everything In One Plot
 tech_in_one_column <- technical_terms %>%
-  rename(CommentID = doc_id) %>%
-  dplyr::inner_join(Tables_and_Figures, by = "CommentID") %>%
+  rename(comment_url = doc_id) %>%
+  dplyr::inner_join(Tables_and_Figures, by ="comment_url") %>%
   rename(Banking = banking,
          `US Law` = us_law,
          `Overlap` = overlap,
@@ -352,7 +429,9 @@ tech_in_one_column <- technical_terms %>%
          Tables = tables,
          `Dictionary Terms` = dictionary_terms) %>%
   select(-uk_law) %>%
-  gather(Technical_Features, val, -CommentID) %>%
+  gather(Technical_Features, val) %>%
+  filter(Technical_Features != "comment_url") %>%
+  mutate(val = as.double(val)) %>%
   group_by(Technical_Features) 
 ```
 

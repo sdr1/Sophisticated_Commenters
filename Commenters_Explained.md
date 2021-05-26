@@ -1,7 +1,7 @@
 ---
 title: "Technical Comments"
 author: "Steven Rashin"
-date: "May 12, 2021"
+date: "May 26, 2021"
 output:
   html_document:
     keep_md: TRUE
@@ -99,37 +99,102 @@ techincal_dict <- dictionary(list(UK_law = unlist(OED_Law[,1]),
                           US_law = unlist(MW_Law[,1]),
                           Overlap = (banking_us_law_overlap)))
 
-# take comments, put into corpus, tokenize them, count the tokens, and display results
-text_and_id <- SEC_Comments_full %>%
-  select(CommentID, text, File_No) %>%
-  distinct(CommentID, .keep_all = T) %>%
-  group_by(File_No) %>%
-  add_tally() %>%
-  filter(n>=10) %>%
-  sample_n(size = 10, replace = F)
+# problem, dataset is too big for dfm, so split into smaller sets 
+num_groups = 1000
+text_and_id <- attachments %>%
+  select(attachment_text, comment_url) %>%
+  distinct(comment_url, .keep_all = T) %>%
+  group_by((row_number()-1) %/% (n()/num_groups)) %>%
+  nest %>% pull(data)
 
-dictionary_corpus <- corpus(x = text_and_id$text, docnames = text_and_id$CommentID)  
+technical_terms <- tibble()
+iteration_stats <- tibble()
 
-dictionary_dfm <- dictionary_corpus %>%
-  tokens() %>%
-  tokens_lookup(dictionary = techincal_dict ) %>%
-  dfm() 
+# issue https://www.regulations.gov/document/CFPB-2016-0025-199792 is 500 bundled
+# comments.  so comes off highly in measures but not actually super sophisticated
 
-#' Tech sophistication is law + banking - overlap
-#' Suppose you have 12 banking and 50 law terms, if there are 7 in both
-#' you overcount the technical terms by 7
-technical_terms <- convert(x = dictionary_dfm, to = "data.frame") %>%
-  tibble() %>%
-  mutate(dictionary_terms = banking + us_law - overlap)
+for(i in 1:1000){
+  
+  cat(c(paste("On iteration ", i, " of 1,000")), sep = "\n")
+  
+  time.start = Sys.time()
+  
+  temp_text_ID_frame <- text_and_id[[i]]
+  
+  dictionary_corpus <- corpus(x = temp_text_ID_frame$attachment_text, docnames = temp_text_ID_frame$comment_url)  
+  
+  dictionary_dfm <- dictionary_corpus %>%
+    tokens() %>%
+    tokens_lookup(dictionary = techincal_dict ) %>%
+    dfm() 
+  
+  technical_terms_temp <- convert(x = dictionary_dfm, to = "data.frame") %>%
+    tibble() %>%
+    mutate(dictionary_terms = banking + us_law - overlap)
+  
+  technical_terms <- technical_terms %>%
+    dplyr::bind_rows(technical_terms_temp)
+  
+  #stats about distribution of length
+  
+  time.end = Sys.time()
+  
+  iteration_temp_stats <- unlist(lapply(X = temp_text_ID_frame$attachment_text, FUN = nchar)) %>%
+    tibble() %>%
+    summarise(n = length(temp_text_ID_frame$attachment_text),
+            min = fivenum(.)[1],
+            Q1 = fivenum(.)[2],
+            median = fivenum(.)[3],
+            Q3 = fivenum(.)[4],
+            Q90 = quantile(., 0.9, na.rm = T),
+            Q99 = quantile(., 0.99, na.rm = T),
+            max = fivenum(.)[5]) %>%
+    mutate(
+      time = time.end - time.start,
+      iteration = i 
+    )
+
+  iteration_stats <- iteration_stats %>%
+    bind_rows(iteration_temp_stats)
+}
+save(technical_terms, iteration_stats, file = "/Users/stevenrashin/Documents/GitHub/Sophisticated_Commenters/tech_iterations.RData")
 ```
 
+## Performance of Classifiers
+
+
+```r
+load("/Users/stevenrashin/Documents/GitHub/Sophisticated_Commenters/tech_iterations.RData")
+
+max_length <- iteration_stats %>%
+  ggplot(aes(x = max, y = time)) +
+  geom_point() +
+  theme_minimal() +
+  labs(title = "Max") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Max Comment Length (Characters)") + ylab("Time (Seconds)") 
+
+median_length <- iteration_stats %>%
+  ggplot(aes(x = median, y = time)) +
+  geom_point() +
+  theme_minimal() +
+  labs(title = "Median") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Median Comment Length (Characters)") + ylab("Time (Seconds)") 
+
+grid.arrange(max_length, median_length, ncol = 2,
+             top = textGrob("Max and Median Length and Iteration Time",gp=gpar(fontsize=20,font=1)))     
+```
+
+![](Commenters_Explained_files/figure-html/show time-1.png)<!-- -->
+
 In the tables below medians are in red and means are in blue.  
+
 
 
 ```r
 #' Show Distribution of Technical Terms
 #' Median is red, Mean is blue
-library("gridExtra")   
 
 Full <- technical_terms %>%
   select(-uk_law) %>%
@@ -143,8 +208,8 @@ Full <- technical_terms %>%
   geom_violin(position="dodge", alpha=0.5) +
   theme_minimal() +
   coord_flip() +
-  labs(title = "Distribution of Law and Banking Terms") +
-  theme(plot.title = element_text(hjust = 0.5)) +
+  labs(title = "A") +
+  #theme(plot.title = element_text(hjust = 0.5)) +
   xlab("Dictionary") + ylab("Count") +
   stat_summary(fun=median, geom="point", size=2, color="red") +
   stat_summary(fun=mean, geom="point", size=2, color ="blue")
@@ -161,19 +226,20 @@ Zoomed <- technical_terms %>%
   geom_violin(position="dodge", alpha=0.5) +
   theme_minimal() +
   coord_flip(ylim = c(0, 300)) +
-  labs(title = "Distribution of Law and Banking Terms") +
-  theme(plot.title = element_text(hjust = 0.5)) +
+  labs(title = "B") +
+  #theme(plot.title = element_text(hjust = 0.5)) +
   xlab("Dictionary") + ylab("Count") +
   stat_summary(fun=median, geom="point", size=2, color="red") +
   stat_summary(fun=mean, geom="point", size=2, color ="blue")
 
-grid.arrange(Full, Zoomed, ncol = 2)     
+
+grid.arrange(Full, Zoomed, ncol = 2,
+             top = textGrob("Distribution of Law and Banking Terms",gp=gpar(fontsize=20,font=1)))     
 ```
 
 ![](Commenters_Explained_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
 
 The functions to count tables and figures are below.  The strings to instances function makes an adjustment for poorly formatted table numbering when OCR'd text shows a year or a page number after a figure (e.g., Figure 2015).  The function takes a sequence of numbers such as c(1, 2, 2015) and will see differences of 1 and 2013 between the terms and will throw out any number not within one of the previous number.  So in the example above, we have two tables, not three or 2015.
-
 
 
 ```r
@@ -309,17 +375,17 @@ lookup_numbered_fcn <- function(txt, rgex){
 #' Now we have technical terms, by doc_id 
 #' Now do Figures and Tables
 
-Tables_and_Figures <- SEC_Comments_full %>%
-  mutate(figures = purrr::map2_dbl(.f = lookup_numbered_fcn, .x = text, .y = "([Ff]igure)\\s{1,}(\\w{1,}\\.{1}\\w{1,}|\\w{1,})"),
-         tables  = purrr::map2_dbl(.f = lookup_numbered_fcn, .x = text, .y = "([Tt]able)\\s{1,}(\\w{1,}\\.{1}\\w{1,}|\\w{1,})")) %>%
-  select(CommentID, figures, tables) %>%
+Tables_and_Figures <- attachments %>%
+  mutate(figures = purrr::map2_dbl(.f = lookup_numbered_fcn, .x = attachment_text, .y = "([Ff]igure)\\s{1,}(\\w{1,}\\.{1}\\w{1,}|\\w{1,})"),
+         tables  = purrr::map2_dbl(.f = lookup_numbered_fcn, .x = attachment_text, .y = "([Tt]able)\\s{1,}(\\w{1,}\\.{1}\\w{1,}|\\w{1,})")) %>%
+  select(comment_url, figures, tables) %>%
   mutate(`Visualizations` = tables + figures)
 
 #' Show Tables
 Tables_and_Figures %>%
   rename(Figures = figures,
          Tables = tables) %>%
-  gather(terms, val, -CommentID) %>%
+  gather(terms, val, -comment_url) %>%
   mutate(terms = factor(terms, levels=c("Figures", "Tables", "Visualizations"))) %>%
   ggplot(aes(y=val, x=forcats::fct_rev(factor(terms)))) + 
   geom_violin(position="dodge", alpha=0.5) +
@@ -337,8 +403,8 @@ Tables_and_Figures %>%
 ```r
 #' Now Show Everything In One Plot
 tech_in_one_column <- technical_terms %>%
-  rename(CommentID = doc_id) %>%
-  dplyr::inner_join(Tables_and_Figures, by = "CommentID") %>%
+  rename(comment_url = doc_id) %>%
+  dplyr::inner_join(Tables_and_Figures, by ="comment_url") %>%
   rename(Banking = banking,
          `US Law` = us_law,
          `Overlap` = overlap,
@@ -346,7 +412,9 @@ tech_in_one_column <- technical_terms %>%
          Tables = tables,
          `Dictionary Terms` = dictionary_terms) %>%
   select(-uk_law) %>%
-  gather(Technical_Features, val, -CommentID) %>%
+  gather(Technical_Features, val) %>%
+  filter(Technical_Features != "comment_url") %>%
+  mutate(val = as.double(val)) %>%
   group_by(Technical_Features) 
 ```
 
@@ -387,87 +455,87 @@ knitr::kable(tech_table) %>%
 <tbody>
   <tr>
    <td style="text-align:left;"> Banking </td>
-   <td style="text-align:right;"> 3080 </td>
+   <td style="text-align:right;"> 88593 </td>
    <td style="text-align:right;"> 0 </td>
-   <td style="text-align:right;"> 15 </td>
-   <td style="text-align:right;"> 61.0 </td>
-   <td style="text-align:right;"> 196 </td>
-   <td style="text-align:right;"> 444.1 </td>
-   <td style="text-align:right;"> 707.2 </td>
-   <td style="text-align:right;"> 2195.72 </td>
-   <td style="text-align:right;"> 22705 </td>
+   <td style="text-align:right;"> 2 </td>
+   <td style="text-align:right;"> 10 </td>
+   <td style="text-align:right;"> 19 </td>
+   <td style="text-align:right;"> 90 </td>
+   <td style="text-align:right;"> 256.0 </td>
+   <td style="text-align:right;"> 1149.16 </td>
+   <td style="text-align:right;"> 23134 </td>
   </tr>
   <tr>
    <td style="text-align:left;"> Dictionary Terms </td>
-   <td style="text-align:right;"> 3080 </td>
-   <td style="text-align:right;"> 1 </td>
-   <td style="text-align:right;"> 45 </td>
-   <td style="text-align:right;"> 192.0 </td>
-   <td style="text-align:right;"> 586 </td>
-   <td style="text-align:right;"> 1306.0 </td>
-   <td style="text-align:right;"> 2088.5 </td>
-   <td style="text-align:right;"> 6290.38 </td>
-   <td style="text-align:right;"> 35518 </td>
+   <td style="text-align:right;"> 88593 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 20 </td>
+   <td style="text-align:right;"> 35 </td>
+   <td style="text-align:right;"> 54 </td>
+   <td style="text-align:right;"> 291 </td>
+   <td style="text-align:right;"> 802.0 </td>
+   <td style="text-align:right;"> 3471.08 </td>
+   <td style="text-align:right;"> 90193 </td>
   </tr>
   <tr>
    <td style="text-align:left;"> Figures </td>
-   <td style="text-align:right;"> 3080 </td>
+   <td style="text-align:right;"> 88593 </td>
    <td style="text-align:right;"> 0 </td>
    <td style="text-align:right;"> 0 </td>
-   <td style="text-align:right;"> 0.0 </td>
    <td style="text-align:right;"> 0 </td>
-   <td style="text-align:right;"> 0.0 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 0 </td>
    <td style="text-align:right;"> 0.0 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 14 </td>
+   <td style="text-align:right;"> 79 </td>
   </tr>
   <tr>
    <td style="text-align:left;"> Overlap </td>
-   <td style="text-align:right;"> 3080 </td>
+   <td style="text-align:right;"> 88593 </td>
    <td style="text-align:right;"> 0 </td>
-   <td style="text-align:right;"> 10 </td>
-   <td style="text-align:right;"> 43.0 </td>
-   <td style="text-align:right;"> 143 </td>
-   <td style="text-align:right;"> 326.0 </td>
-   <td style="text-align:right;"> 517.0 </td>
-   <td style="text-align:right;"> 1560.18 </td>
-   <td style="text-align:right;"> 11313 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 7 </td>
+   <td style="text-align:right;"> 13 </td>
+   <td style="text-align:right;"> 65 </td>
+   <td style="text-align:right;"> 180.0 </td>
+   <td style="text-align:right;"> 836.00 </td>
+   <td style="text-align:right;"> 19687 </td>
   </tr>
   <tr>
    <td style="text-align:left;"> Tables </td>
-   <td style="text-align:right;"> 3080 </td>
+   <td style="text-align:right;"> 88593 </td>
    <td style="text-align:right;"> 0 </td>
    <td style="text-align:right;"> 0 </td>
-   <td style="text-align:right;"> 0.0 </td>
    <td style="text-align:right;"> 0 </td>
-   <td style="text-align:right;"> 0.0 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 0 </td>
    <td style="text-align:right;"> 0.0 </td>
    <td style="text-align:right;"> 1.00 </td>
-   <td style="text-align:right;"> 35 </td>
+   <td style="text-align:right;"> 56 </td>
   </tr>
   <tr>
    <td style="text-align:left;"> US Law </td>
-   <td style="text-align:right;"> 3080 </td>
+   <td style="text-align:right;"> 88593 </td>
    <td style="text-align:right;"> 0 </td>
-   <td style="text-align:right;"> 41 </td>
-   <td style="text-align:right;"> 173.5 </td>
-   <td style="text-align:right;"> 537 </td>
-   <td style="text-align:right;"> 1167.1 </td>
-   <td style="text-align:right;"> 1934.1 </td>
-   <td style="text-align:right;"> 5815.04 </td>
-   <td style="text-align:right;"> 24587 </td>
+   <td style="text-align:right;"> 18 </td>
+   <td style="text-align:right;"> 32 </td>
+   <td style="text-align:right;"> 48 </td>
+   <td style="text-align:right;"> 268 </td>
+   <td style="text-align:right;"> 738.4 </td>
+   <td style="text-align:right;"> 3184.24 </td>
+   <td style="text-align:right;"> 90193 </td>
   </tr>
   <tr>
    <td style="text-align:left;"> Visualizations </td>
-   <td style="text-align:right;"> 3080 </td>
+   <td style="text-align:right;"> 88593 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 0 </td>
+   <td style="text-align:right;"> 0 </td>
    <td style="text-align:right;"> 0 </td>
    <td style="text-align:right;"> 0 </td>
    <td style="text-align:right;"> 0.0 </td>
-   <td style="text-align:right;"> 0 </td>
-   <td style="text-align:right;"> 0.0 </td>
-   <td style="text-align:right;"> 0.0 </td>
-   <td style="text-align:right;"> 2.00 </td>
-   <td style="text-align:right;"> 49 </td>
+   <td style="text-align:right;"> 1.00 </td>
+   <td style="text-align:right;"> 79 </td>
   </tr>
 </tbody>
 </table>
