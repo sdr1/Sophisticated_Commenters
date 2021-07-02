@@ -216,7 +216,7 @@ grid.arrange(max_length, median_length, ncol = 2,
 In the tables below medians are in red and means are in blue.  
 
 
-```{r}
+```{r dist tech}
 #' Show Distribution of Technical Terms
 #' Median is red, Mean is blue
 

@@ -237,7 +237,7 @@ grid.arrange(Full, Zoomed, ncol = 2,
              top = textGrob("Distribution of Law and Banking Terms",gp=gpar(fontsize=20,font=1)))     
 ```
 
-![](Commenters_Explained_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
+![](Commenters_Explained_files/figure-html/dist tech-1.png)<!-- -->
 
 The functions to count tables and figures are below.  The strings to instances function makes an adjustment for poorly formatted table numbering when OCR'd text shows a year or a page number after a figure (e.g., Figure 2015).  The function takes a sequence of numbers such as c(1, 2, 2015) and will see differences of 1 and 2013 between the terms and will throw out any number not within one of the previous number.  So in the example above, we have two tables, not three or 2015.
 
@@ -398,7 +398,7 @@ Tables_and_Figures %>%
   stat_summary(fun=mean, geom="point", size=2, color ="blue")
 ```
 
-![](Commenters_Explained_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+![](Commenters_Explained_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
 
 ```r
 #' Now Show Everything In One Plot
