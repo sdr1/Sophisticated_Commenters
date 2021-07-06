@@ -82,9 +82,10 @@ Now we can show that the regular expressions work in practice on a random sample
 # show random examples in practice
 show_regex_works <- function(pattern, num_to_print){
   FR <- str_count(string = attachments$attachment_text, pattern = pattern)
-  return(str_match_all(string = attachments$attachment_text[which(FR>0)], 
+  sampled <- str_match_all(string = attachments$attachment_text[which(FR>0)], 
                 pattern = pattern) %>%
-    sample(num_to_print,replace = F))
+    sample(num_to_print,replace = F)
+  return(sampled)
 }
 
 show_regex_works(US_Code_Regex, 5)

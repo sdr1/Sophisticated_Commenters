@@ -11,7 +11,7 @@ output:
 
 ## Citation Sources
 
-This file is based on three documents: Georgetown's Bluebook style for US code, Supreme Court, and Appeals and District Courts <https://guides.ll.georgetown.edu/c.php?g=261289&p=2339383>, Cornell's Bluebook guide for the CFR and the Federal Register <https://www.law.cornell.edu/citation/2-400#:~:text=Principle%201%3A%20The%20core%20of,followed%20by%20a%20space%20%C2%ABe.g.%C2%BB> and a Github which lists many regex ideas for legal citations <https://gist.github.com/mlissner/dda7f6677b98b98f54522e271d486781>
+This file is based on three documents: Georgetown's Bluebook style for US code, Supreme Court, and Appeals and District Courts <https://guides.ll.georgetown.edu/c.php?g=261289&p=2339383>, Cornell's Bluebook guide for the CFR and the Federal Register <https://www.law.cornell.edu/citation/2-400#:~:text=Principle%201%3A%20The%20core%20of,followed%20by%20a%20space%20%C2%ABe.g.%C2%BB> and a Github for the Free Law Project <https://free.law/about/> which lists many regex ideas for legal citations <https://gist.github.com/mlissner/dda7f6677b98b98f54522e271d486781>
 
 
 ```r
@@ -91,9 +91,10 @@ Now we can show that the regular expressions work in practice on a random sample
 # show random examples in practice
 show_regex_works <- function(pattern, num_to_print){
   FR <- str_count(string = attachments$attachment_text, pattern = pattern)
-  return(str_match_all(string = attachments$attachment_text[which(FR>0)], 
+  sampled <- str_match_all(string = attachments$attachment_text[which(FR>0)], 
                 pattern = pattern) %>%
-    sample(num_to_print,replace = F))
+    sample(num_to_print,replace = F)
+  return(sampled)
 }
 
 show_regex_works(US_Code_Regex, 5)
@@ -101,62 +102,27 @@ show_regex_works(US_Code_Regex, 5)
 
 ```
 ## [[1]]
-##      [,1]             [,2]
-## [1,] "12 U.S.C. 1701" NA  
-## [2,] "12 U.S.C. 1701" NA  
-## [3,] "12 U.S.C. 1701" NA  
-## [4,] "12 U.S.C. 1701" NA  
+##      [,1]                [,2]
+## [1,] "12 U.S.C.  § 2607" NA  
+## [2,] "12 U.S.C.  § 2607" NA  
+## [3,] "12 U.S.C.  § 2607" NA  
 ## 
 ## [[2]]
-##      [,1]               [,2]
-## [1,] "15 U.S.C. § 1640" NA  
-## [2,] "15 U.S.C. § 1640" NA  
-## [3,] "15 U.S.C. § 1640" NA  
+##      [,1]              [,2]
+## [1,] "12 u.s.c. §5518" NA  
 ## 
 ## [[3]]
-##      [,1]               [,2]
-## [1,] "12 U.S.C. 1701"   NA  
-## [2,] "12 U.S.C. § 5511" NA  
-## [3,] "12 U.S.C. § 5511" NA  
-## [4,] "12 U.S.C. § 5511" NA  
+##      [,1]              [,2]
+## [1,] "15 U.S.C. §1692" NA  
 ## 
 ## [[4]]
-##       [,1]                  [,2]
-##  [1,] "15 U.S.C. §1691"     NA  
-##  [2,] "15 U.S.C. §1691"     NA  
-##  [3,] "15 U.S.C. §1691"     NA  
-##  [4,] "15 U.S.C. § 1691"    NA  
-##  [5,] "15 U.S.C. §1691"     NA  
-##  [6,] "15 U.S.C. §1691"     NA  
-##  [7,] "15 U.S.C. \n\n§1691" NA  
-##  [8,] "15 U.S.C. §1691"     NA  
-##  [9,] "15 U.S.C. §1691"     NA  
-## [10,] "15 U.S.C. §1601"     NA  
-## [11,] "15 U.S.C. §1640"     NA  
-## [12,] "15 U.S.C. §1601"     NA  
+##      [,1]                [,2]
+## [1,] "15 U.S.C. §\n1601" NA  
 ## 
 ## [[5]]
-##       [,1]                [,2]
-##  [1,] "15 U.S.C.  § 1012" NA  
-##  [2,] "12 U.S.C. §5481"   NA  
-##  [3,] "12 U.S.C. §5481"   NA  
-##  [4,] "12 U.S.C. 5481"    NA  
-##  [5,] "12 U.S.C. 5517"    NA  
-##  [6,] "12 U.S.C. §5517"   NA  
-##  [7,] "10 U.S.C. §987"    NA  
-##  [8,] "10 U.S.C. §987"    NA  
-##  [9,] "12 U.S.C. §5517"   NA  
-## [10,] "10 U.S.C. §987"    NA  
-## [11,] "18 U.S.C. § 1962"  NA  
-## [12,] "18 U.S.C. § 1961"  NA  
-## [13,] "15 U.S.C. § 1601"  NA  
-## [14,] "15 U.S.C. §1606"   NA  
-## [15,] "15 U.S.C. §1605"   NA  
-## [16,] "15 U.S.C. §1605"   NA  
-## [17,] "15 U.S.C. § 1605"  NA  
-## [18,] "15 U.S.C. §1601"   NA  
-## [19,] "10 U.S.C. § 987"   NA  
-## [20,] "5 U.S.C. § 706"    NA
+##      [,1]               [,2]
+## [1,] "11 U.S.C  §362"   NA  
+## [2,] "11 U.S.C. \n§108" NA
 ```
 
 ```r
@@ -165,70 +131,32 @@ show_regex_works(Supreme_Court_Cases, 5)
 
 ```
 ## [[1]]
-##      [,1]                          [,2] [,3]
-## [1,] "Corp. v. Bonjorno, 494 U.S." "."  "," 
+##      [,1]                         [,2] [,3]
+## [1,] "Inc. v. Cardegna, 546 U.S." "."  "," 
 ## 
 ## [[2]]
-##      [,1]                            [,2] [,3]
-## [1,] "Hines v. Davidowitz, 312 U.S." NA   "," 
+##      [,1]                                  [,2] [,3]
+## [1,] "Hammer  v.  Dagenhart,\n247  U.S."   NA   "," 
+## [2,] "Hammer v.  Dagenhart,  247  U.S."    NA   "," 
+## [3,] "Katzenbach  v.  McClung,  379  U.S." NA   "," 
+## [4,] "Terre v. Boraas,  416 U.S."          NA   "," 
+## [5,] "Carolina v.  Baker, 485  U.S."       NA   "," 
 ## 
 ## [[3]]
-##       [,1]                                   [,2] [,3]
-##  [1,] "States  v.  Perez,  402  U.S."        NA   "," 
-##  [2,] "Mullaney  v.  Wilbur,  421  U.S."     NA   "," 
-##  [3,] "States v.  Park,  421  U.S."          NA   "," 
-##  [4,] "Marbury  v.  Brooks,  20  U.S."       NA   "," 
-##  [5,] "States  v.  Nobles,  422  U.S."       NA   "," 
-##  [6,] "McCray  v.  Illinois,  386  U.S."     NA   "," 
-##  [7,] "States  v.  Simmons,  96  U.S."       NA   "," 
-##  [8,] "Barker  v.  Wingo,  407  U.S."        NA   "," 
-##  [9,] "Vogel  v.  Gruaz,  110  U.S."         NA   "," 
-## [10,] "Hale  v.  Henkel,  201  U.S."         NA   "," 
-## [11,] "Brown  v.  Walker,  161  U.S."        NA   "," 
-## [12,] "Barber  v.  Page,  390  U.S."         NA   "," 
-## [13,] "Griffin  v.  California,  380  U.S."  NA   "," 
-## [14,] "Lakeside  v.  Oregon,  435  U.S."     NA   "," 
-## [15,] "Barber  v.  Page,  390  U.S."         NA   "," 
-## [16,] "Green  v.  California,  399  U.S."    NA   "," 
-## [17,] "Dutton  v.  Evans,  400\nU.S."        NA   "," 
-## [18,] "California  v.  Green,  399  U.S."    NA   "," 
-## [19,] "Dutton  v.  Evans,  400  U.S."        NA   "," 
-## [20,] "nia  v.  Green,  399  U.S."           NA   "," 
-## [21,] "California  v.  Green,  399  U.S."    NA   "," 
-## [22,] "Dutton  v.  Evans,  400  U.S."        NA   "," 
-## [23,] "Brookhart  v. Janis,  384  U.S."      NA   "," 
-## [24,] "Johnson  v.  Zerbst,  304  U.S."      NA   "," 
-## [25,] "Williams  v.  Oklahoma,  358  U.S."   NA   "," 
-## [26,] "Illinois  v.  Allen,  397  U.S."      NA   "," 
-## [27,] "Snyder v.\nMassachusetts,  291  U.S." NA   "," 
-## [28,] "Brookhart  v.  Janis,  384  U.S."     NA   "," 
-## [29,] "States  v.  Hale,  422  U.S."         NA   "," 
+##      [,1]                               [,2] [,3]
+## [1,] "Corp. v. Zuccarini, 56 U.S."      "."  "," 
+## [2,] "Inc.  v. \nSanfilippo,  46  U.S." "."  "," 
+## [3,] "Inc. v. Gore, 517 U.S."           "."  "," 
 ## 
 ## [[4]]
-##      [,1]                                [,2] [,3]
-## [1,] "Oelrichs  v.  Spain,  82  U.S."    NA   "," 
-## [2,] "Day\nv.  Woodworth,  54  U.S."     NA   "," 
-## [3,] "Arcambel  v.  Wiseman,  3  U.S."   NA   "," 
-## [4,] "Oelrichs\n\nv.  Spain,  82  U.S."  NA   "," 
-## [5,] "Oelrichs  v.  Spain,  82 U.S."     NA   "," 
-## [6,] "Stewart  v.  Sonneborn,  98  U.S." NA   "," 
+##      [,1]                        [,2] [,3]
+## [1,] "Inc.  v.  FCC,  535  U.S." "."  "," 
 ## 
 ## [[5]]
-##       [,1]                               [,2] [,3]
-##  [1,] "States  v. Hayes,  555 U.S."      NA   "," 
-##  [2,] "Jama  v. INS,  543 U.S."          NA   "," 
-##  [3,] "Barnhart  v.  Thomas,  540 U.S."  NA   "," 
-##  [4,] "Johnson  v. Sayre,  158 U.S."     NA   "," 
-##  [5,] "Barnhart  v.  Thomas,  540 U.S."  NA   "," 
-##  [6,] "States  v. Hayes,  555 U.S."      NA   "," 
-##  [7,] "Dewsnap  v.  Timm, \n502 U.S."    NA   "," 
-##  [8,] "States  v. Granderson,  511 U.S." NA   "," 
-##  [9,] "Dewsnup  v.  Timm,  502 U.S."     NA   "," 
-## [10,] "Dewsnap  v.  Timm, \n502 U.S."    NA   "," 
-## [11,] "Gonzales  v. Oregon,  546 \nU.S." NA   "," 
-## [12,] "Conroy  v. Aniskoff,  507 U.S."   NA   "," 
-## [13,] "Texas v.  Timbers \n484 U.S."     NA   NA  
-## [14,] "States  v. Alaska,  521 U.S."     NA   ","
+##      [,1]                              [,2] [,3]
+## [1,] "Montclair v. Ramsdell, 107 U.S." NA   "," 
+## [2,] "Hamdan v. \nRumsfeld, 548 U.S."  NA   "," 
+## [3,] "Lindh v. Murphy, 521 U. S."      NA   ","
 ```
 
 ```r
@@ -237,27 +165,45 @@ show_regex_works(Appeals_and_District_Court_Cases, 5)
 
 ```
 ## [[1]]
-##      [,1]                           [,2] [,3]
-## [1,] "Trax  v. NationsBank,  33  F" NA   "," 
+##       [,1]                            [,2] [,3]
+##  [1,] "States v. Zats, 298 F"         NA   "," 
+##  [2,] "Chaudhry v. Gallerizzo, 174 F" NA   "," 
+##  [3,] "Azar v. \nHayter, 874 F"       NA   "," 
+##  [4,] "Chaudhry v. Gallerizzo, 174 F" NA   "," 
+##  [5,] "Dikun v. Streich, 369 F"       NA   "," 
+##  [6,] "Shimek v. Forbes, 374 F"       NA   "," 
+##  [7,] "Bartlett v. Heibl, 128 F"      NA   "," 
+##  [8,] "Avila v. Rubin, 84 F"          NA   "," 
+##  [9,] "Nielsen v. Dickerson, 307 F"   NA   "," 
+## [10,] "Clomon v. Jackson, 988 F"      NA   "," 
+## [11,] "Clomon v. Jackson, 988 F"      NA   "," 
+## [12,] "Taylor v. Quall, 471 F"        NA   "," 
+## [13,] "Billsie v. Brooksbank, 525 F"  NA   "," 
+## [14,] "Simmons v. Miller, 970 F"      NA   "," 
+## [15,] "Shula v. Lawent, 359 F"        NA   "," 
+## [16,] "Johnson v. Riddle, 305 F"      NA   "," 
+## [17,] "Duffy v. Landberg, 215 F"      NA   "," 
+## [18,] "Shula v. Lawent, 359 F"        NA   "," 
+## [19,] "Inc. v. Sykes, 171 F"          "."  "," 
+## [20,] "Clomon v. Jackson, 988 F"      NA   "," 
+## [21,] "Johnson v. Riddle, 305 F"      NA   "," 
 ## 
 ## [[2]]
-##      [,1]                          [,2] [,3]
-## [1,] "Eubank v. Pella, 753 F"      NA   "," 
-## [2,] "Poertner v. Gillette, 618 F" NA   "," 
+##      [,1]                       [,2] [,3]
+## [1,] "Bernal v. Burnett, 793 F" NA   "," 
 ## 
 ## [[3]]
-##      [,1]                      [,2] [,3]
-## [1,] "Goldstein v. SEC, 451 F" NA   "," 
+##      [,1]                         [,2] [,3]
+## [1,] "Riethman v. Barry, 287 F"   NA   "," 
+## [2,] "Shaumyan v. Sidetex, 900 F" NA   "," 
 ## 
 ## [[4]]
-##      [,1]                   [,2] [,3]
-## [1,] "Inc. v. Alig, 737 F"  "."  "," 
-## [2,] "Prado v. Bush, 221 F" NA   "," 
+##      [,1]                         [,2] [,3]
+## [1,] "Donvan v. Bierwirth, 680 F" NA   "," 
 ## 
 ## [[5]]
-##      [,1]                       [,2] [,3]
-## [1,] "Corp. v. Williams, 62 F"  "."  "," 
-## [2,] "Burtnick v. McLean, 76 F" NA   ","
+##      [,1]                      [,2] [,3]
+## [1,] "Corp. v. Sargeant, 20 F" "."  ","
 ```
 
 ```r
@@ -266,27 +212,36 @@ show_regex_works(Code_of_Federal_Regulations, 5)
 
 ```
 ## [[1]]
-##      [,1]             
-## [1,] "17 C.F.R. § 275"
+##      [,1]           
+## [1,] "12 CFR § 226" 
+## [2,] "12 CFR § 1026"
 ## 
 ## [[2]]
-##      [,1]             
-## [1,] "12C.F.R. §  220"
-## [2,] "17C.F.R. § 240" 
+##      [,1]            
+## [1,] "12  CFR  §1"   
+## [2,] "12 CFR  §160"  
+## [3,] "12 CFR  §160"  
+## [4,] "12 CFR   § 161"
+## [5,] "26  CFR  §1"   
 ## 
 ## [[3]]
-##      [,1]     
-## [1,] "31cf-r5"
+##      [,1]         
+## [1,] "12 CFR 1003"
 ## 
 ## [[4]]
-##      [,1]        
-## [1,] "17 CFR 249"
-## [2,] "17 CFR 249"
-## [3,] "17 CFR 249"
+##      [,1]              
+## [1,] "17C.F.R. § 230"  
+## [2,] "17C.FJR. § 230"  
+## [3,] "17 C.F.R.  § 230"
 ## 
 ## [[5]]
-##      [,1]           
-## [1,] "12 CFR § 1002"
+##      [,1]                
+## [1,] "12 C.F.R. § \n1005"
+## [2,] "12 C.F.R. § 1005"  
+## [3,] "12 C.F.R. § 1005"  
+## [4,] "12 CFR 1005"       
+## [5,] "12 CFR 1005"       
+## [6,] "12 CFR 1005"
 ```
 
 ```r
@@ -295,30 +250,33 @@ show_regex_works(Federal_Register, 5)
 
 ```
 ## [[1]]
+##      [,1]                   
+## [1,] "75 Fed. Reg. 84"      
+## [2,] "76 Fed. Reg. 151"     
+## [3,] "76  Fed.  Reg.  47948"
+## 
+## [[2]]
+##      [,1]               
+## [1,] "76 Fed. Reg. \n29"
+## [2,] "49 Fed. Reg. 8595"
+## [3,] "71 Fed. Reg. 39"  
+## [4,] "49 Fed. Reg. 8595"
+## 
+## [[3]]
+##      [,1]                  
+## [1,] "76  Fed.  Reg. 68846"
+## 
+## [[4]]
+##      [,1]                
+## [1,] "77 Fed. Reg. 38422"
+## [2,] "77 Fed. Reg. 38422"
+## 
+## [[5]]
 ##      [,1]                  
 ## [1,] "76 Fed. Reg. 8946"   
 ## [2,] "75 Fed. Reg. 60287"  
 ## [3,] "47 Fed. Reg. 11380"  
 ## [4,] "70 Fed. Reg. \n44722"
-## 
-## [[2]]
-##      [,1]                   
-## [1,] "81  Fed.  Reg.  29169"
-## [2,] "81  Fed.  Reg.  29172"
-## 
-## [[3]]
-##      [,1]                   
-## [1,] "76  Fed.  Reg.  27390"
-## [2,] "76  Fed.  Reg.  27390"
-## 
-## [[4]]
-##      [,1]                
-## [1,] "79 Fed. Reg. 53422"
-## 
-## [[5]]
-##      [,1]                   
-## [1,] "75  Fed.  Reg.  77052"
-## [2,] "75  Fed.  Reg.  77190"
 ```
 
 
