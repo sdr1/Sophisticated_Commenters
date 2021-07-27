@@ -82,6 +82,8 @@ show_regex_works(Appeals_and_District_Court_Cases, 5)
 show_regex_works(Code_of_Federal_Regulations, 5)
 show_regex_works(Federal_Register, 5)
 
+# Now do for all 
+
 attachments %<>%
   mutate(
     US_Code = str_count(string = attachment_text,
@@ -145,5 +147,5 @@ DF_in_one_column %>%
   stat_summary(fun=median, geom="point", size=2, color="red") +
   stat_summary(fun=mean, geom="point", size=2, color ="blue")
 
-
+## TO DO - BY AGENCY ##
 
