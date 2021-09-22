@@ -113,6 +113,11 @@ attachments %<>%
       Federal_Register_Total
   ) 
 
+bluebook <- attachments %>%
+  select(-attachment_text,-attachment_number)
+
+save(bluebook, file = "/Users/stevenrashin/Documents/GitHub/Sophisticated_Commenters/bluebook.RData")
+
 #### Get stats for all citations
 
 # Overall

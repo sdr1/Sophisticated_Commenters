@@ -11,7 +11,7 @@
 
 <meta name="author" content="Steven Rashin" />
 
-<meta name="date" content="2021-07-02" />
+<meta name="date" content="2021-09-22" />
 
 <title>Bluebook Regex</title>
 
@@ -193,7 +193,7 @@ summary {
 
 <h1 class="title toc-ignore">Bluebook Regex</h1>
 <h4 class="author">Steven Rashin</h4>
-<h4 class="date">July 02, 2021</h4>
+<h4 class="date">September 22, 2021</h4>
 
 </div>
 
@@ -248,157 +248,206 @@ show_regex_works &lt;- function(pattern, num_to_print){
 
 show_regex_works(US_Code_Regex, 5)</code></pre>
 <pre><code>## [[1]]
-##      [,1]                [,2]
-## [1,] &quot;12 U.S.C.  § 2607&quot; NA  
-## [2,] &quot;12 U.S.C.  § 2607&quot; NA  
-## [3,] &quot;12 U.S.C.  § 2607&quot; NA  
+##      [,1]             [,2]
+## [1,] &quot;15 U.S.C. 1639&quot; NA  
 ## 
 ## [[2]]
-##      [,1]              [,2]
-## [1,] &quot;12 u.s.c. §5518&quot; NA  
+##      [,1]           [,2]
+## [1,] &quot;15 U.S.C. 78&quot; NA  
 ## 
 ## [[3]]
-##      [,1]              [,2]
-## [1,] &quot;15 U.S.C. §1692&quot; NA  
+##       [,1]                [,2]
+##  [1,] &quot;15 U.S.C. § 45&quot;    NA  
+##  [2,] &quot;15\nU.S.C. § 1692&quot; NA  
+##  [3,] &quot;15 U.S.C. § 1681&quot;  NA  
+##  [4,] &quot;15 U.S.C. § 6801&quot;  NA  
+##  [5,] &quot;15 U.S.C. § 16921&quot; NA  
+##  [6,] &quot;15 U.S.C. § 1692&quot;  NA  
+##  [7,] &quot;12 U.S.C. § 5518&quot;  NA  
+##  [8,] &quot;12 U.S.C. § 5518&quot;  NA  
+##  [9,] &quot;12 U.S.C. § 5518&quot;  NA  
+## [10,] &quot;15\nU.S.C. § 1692&quot; NA  
 ## 
 ## [[4]]
-##      [,1]                [,2]
-## [1,] &quot;15 U.S.C. §\n1601&quot; NA  
+##      [,1]             [,2]
+## [1,] &quot;15 USC 1605&quot;    NA  
+## [2,] &quot;15 USC 1601&quot;    NA  
+## [3,] &quot;15 USC 1605&quot;    NA  
+## [4,] &quot;15 U.S.C. 1605&quot; NA  
+## [5,] &quot;15 U.S.C. 1605&quot; NA  
+## [6,] &quot;12 U.S.C. 1841&quot; NA  
 ## 
 ## [[5]]
 ##      [,1]               [,2]
-## [1,] &quot;11 U.S.C  §362&quot;   NA  
-## [2,] &quot;11 U.S.C. \n§108&quot; NA</code></pre>
+## [1,] &quot;12 U.S.C. § 2607&quot; NA  
+## [2,] &quot;12 U.S.C. § 2607&quot; NA  
+## [3,] &quot;15 U.S.C. § 1602&quot; NA</code></pre>
 <pre class="r"><code>show_regex_works(Supreme_Court_Cases, 5)</code></pre>
 <pre><code>## [[1]]
-##      [,1]                         [,2] [,3]
-## [1,] &quot;Inc. v. Cardegna, 546 U.S.&quot; &quot;.&quot;  &quot;,&quot; 
+##      [,1]                             [,2] [,3]
+## [1,] &quot;Cos. v. Dobson, 513 U.S.&quot;       &quot;.&quot;  &quot;,&quot; 
+## [2,] &quot;Cos. v. Dobson, 513 U.S.&quot;       &quot;.&quot;  &quot;,&quot; 
+## [3,] &quot;Ala. v. Randolph, 531 U.S.&quot;     &quot;.&quot;  &quot;,&quot; 
+## [4,] &quot;Inc. v. Dukes, 564 U.S.&quot;        &quot;.&quot;  &quot;,&quot; 
+## [5,] &quot;Lybrand v. Livesay, 437 \nU.S.&quot; NA   &quot;,&quot; 
+## [6,] &quot;Corp. v. Twombly, 550 U.S.&quot;     &quot;.&quot;  &quot;,&quot; 
+## [7,] &quot;LLC v. Concepcion, 563 U.S.&quot;    NA   &quot;,&quot; 
+## [8,] &quot;Cos. v. Dobson, 513 U.S.&quot;       &quot;.&quot;  &quot;,&quot; 
 ## 
 ## [[2]]
-##      [,1]                                  [,2] [,3]
-## [1,] &quot;Hammer  v.  Dagenhart,\n247  U.S.&quot;   NA   &quot;,&quot; 
-## [2,] &quot;Hammer v.  Dagenhart,  247  U.S.&quot;    NA   &quot;,&quot; 
-## [3,] &quot;Katzenbach  v.  McClung,  379  U.S.&quot; NA   &quot;,&quot; 
-## [4,] &quot;Terre v. Boraas,  416 U.S.&quot;          NA   &quot;,&quot; 
-## [5,] &quot;Carolina v.  Baker, 485  U.S.&quot;       NA   &quot;,&quot; 
+##      [,1]                             [,2] [,3]
+## [1,] &quot;Pointer  v.  Texas,  380  U.S.&quot; NA   &quot;,&quot; 
+## [2,] &quot;Pointer  v.  Texas,  380  U.S.&quot; NA   &quot;,&quot; 
 ## 
 ## [[3]]
-##      [,1]                               [,2] [,3]
-## [1,] &quot;Corp. v. Zuccarini, 56 U.S.&quot;      &quot;.&quot;  &quot;,&quot; 
-## [2,] &quot;Inc.  v. \nSanfilippo,  46  U.S.&quot; &quot;.&quot;  &quot;,&quot; 
-## [3,] &quot;Inc. v. Gore, 517 U.S.&quot;           &quot;.&quot;  &quot;,&quot; 
+##      [,1]                             [,2] [,3]
+## [1,] &quot;Leocal v. Ashcroft, 543 U.S.&quot;   NA   &quot;,&quot; 
+## [2,] &quot;Conservation v. EPA, 540 U.S.&quot;  NA   &quot;,&quot; 
+## [3,] &quot;Inc.  v.  Andrews,  534  U.S.&quot;  &quot;.&quot;  &quot;,&quot; 
+## [4,] &quot;Inc.  v.  Wilander,  498  U.S.&quot; &quot;.&quot;  &quot;,&quot; 
+## [5,] &quot;Corp. v. Howe, 516 U.S.&quot;        &quot;.&quot;  &quot;,&quot; 
 ## 
 ## [[4]]
 ##      [,1]                        [,2] [,3]
-## [1,] &quot;Inc.  v.  FCC,  535  U.S.&quot; &quot;.&quot;  &quot;,&quot; 
+## [1,] &quot;Burnet v. Logan, 283 U.S.&quot; NA   &quot;,&quot; 
 ## 
 ## [[5]]
-##      [,1]                              [,2] [,3]
-## [1,] &quot;Montclair v. Ramsdell, 107 U.S.&quot; NA   &quot;,&quot; 
-## [2,] &quot;Hamdan v. \nRumsfeld, 548 U.S.&quot;  NA   &quot;,&quot; 
-## [3,] &quot;Lindh v. Murphy, 521 U. S.&quot;      NA   &quot;,&quot;</code></pre>
+##      [,1]                             [,2] [,3]
+## [1,] &quot;Mugler  v.  Kansas,  123  U.S.&quot; NA   &quot;,&quot; 
+## [2,] &quot;States  v.  Lopez,  514  U.S.&quot;  NA   &quot;,&quot; 
+## [3,] &quot;States  v. Lopez,  514 U.S.&quot;    NA   &quot;,&quot; 
+## [4,] &quot;States  v.  Lopez,  514 U.S.&quot;   NA   &quot;,&quot;</code></pre>
 <pre class="r"><code>show_regex_works(Appeals_and_District_Court_Cases, 5)</code></pre>
 <pre><code>## [[1]]
-##       [,1]                            [,2] [,3]
-##  [1,] &quot;States v. Zats, 298 F&quot;         NA   &quot;,&quot; 
-##  [2,] &quot;Chaudhry v. Gallerizzo, 174 F&quot; NA   &quot;,&quot; 
-##  [3,] &quot;Azar v. \nHayter, 874 F&quot;       NA   &quot;,&quot; 
-##  [4,] &quot;Chaudhry v. Gallerizzo, 174 F&quot; NA   &quot;,&quot; 
-##  [5,] &quot;Dikun v. Streich, 369 F&quot;       NA   &quot;,&quot; 
-##  [6,] &quot;Shimek v. Forbes, 374 F&quot;       NA   &quot;,&quot; 
-##  [7,] &quot;Bartlett v. Heibl, 128 F&quot;      NA   &quot;,&quot; 
-##  [8,] &quot;Avila v. Rubin, 84 F&quot;          NA   &quot;,&quot; 
-##  [9,] &quot;Nielsen v. Dickerson, 307 F&quot;   NA   &quot;,&quot; 
-## [10,] &quot;Clomon v. Jackson, 988 F&quot;      NA   &quot;,&quot; 
-## [11,] &quot;Clomon v. Jackson, 988 F&quot;      NA   &quot;,&quot; 
-## [12,] &quot;Taylor v. Quall, 471 F&quot;        NA   &quot;,&quot; 
-## [13,] &quot;Billsie v. Brooksbank, 525 F&quot;  NA   &quot;,&quot; 
-## [14,] &quot;Simmons v. Miller, 970 F&quot;      NA   &quot;,&quot; 
-## [15,] &quot;Shula v. Lawent, 359 F&quot;        NA   &quot;,&quot; 
-## [16,] &quot;Johnson v. Riddle, 305 F&quot;      NA   &quot;,&quot; 
-## [17,] &quot;Duffy v. Landberg, 215 F&quot;      NA   &quot;,&quot; 
-## [18,] &quot;Shula v. Lawent, 359 F&quot;        NA   &quot;,&quot; 
-## [19,] &quot;Inc. v. Sykes, 171 F&quot;          &quot;.&quot;  &quot;,&quot; 
-## [20,] &quot;Clomon v. Jackson, 988 F&quot;      NA   &quot;,&quot; 
-## [21,] &quot;Johnson v. Riddle, 305 F&quot;      NA   &quot;,&quot; 
+##      [,1]                          [,2] [,3]
+## [1,] &quot;Zimmerman v.\nPuccio, 613 F&quot; NA   &quot;,&quot; 
 ## 
 ## [[2]]
-##      [,1]                       [,2] [,3]
-## [1,] &quot;Bernal v. Burnett, 793 F&quot; NA   &quot;,&quot; 
+##       [,1]                              [,2] [,3]
+##  [1,] &quot;Inc. v. EPA, 82 F&quot;               &quot;.&quot;  &quot;,&quot; 
+##  [2,] &quot;Ohio v. \n \nEPA, 838 F&quot;         NA   &quot;,&quot; 
+##  [3,] &quot;Council v. Reilly, 983 F&quot;        NA   &quot;,&quot; 
+##  [4,] &quot;Corp. v. EPA, 938 F&quot;             &quot;.&quot;  &quot;,&quot; 
+##  [5,] &quot;Children v. FCC, 712 F&quot;          NA   &quot;,&quot; 
+##  [6,] &quot;Council v. EPA, 824 \n \nF&quot;      NA   &quot;,&quot; 
+##  [7,] &quot;Trends  v.  Heckler,  756  F&quot;    NA   &quot;,&quot; 
+##  [8,] &quot;Ashton  v.  Pierce,  541 \nF&quot;    NA   &quot;,&quot; 
+##  [9,] &quot;York  v.  EPA,  852  F&quot;          NA   &quot;,&quot; 
+## [10,] &quot;Citizen v. Young, 831 F&quot;         NA   &quot;,&quot; 
+## [11,] &quot;UAW v. Dole, 919 F&quot;              NA   &quot;,&quot; 
+## [12,] &quot;Ohio  v.  EPA,  838  F&quot;          NA   &quot;,&quot; 
+## [13,] &quot;Mgmt.  v.  EPA,  976  F&quot;         &quot;.&quot;  &quot;,&quot; 
+## [14,] &quot;Corp. v. EPA, 938 F&quot;             &quot;.&quot;  &quot;,&quot; 
+## [15,] &quot;Inc.  v.  Kaplan,  792  F&quot;       &quot;.&quot;  &quot;,&quot; 
+## [16,] &quot;Council v. EPA, 943 F&quot;           NA   &quot;,&quot; 
+## [17,] &quot;Inc.  v.  EPA,  966  F&quot;          &quot;.&quot;  &quot;,&quot; 
+## [18,] &quot;States \n \nv. Desimone, 140 F&quot;  NA   &quot;,&quot; 
+## [19,] &quot;Kelley v. Selin, 42 \nF&quot;         NA   &quot;,&quot; 
+## [20,] &quot;Inc. v. \n \nSkinner, 970 F&quot;     &quot;.&quot;  &quot;,&quot; 
+## [21,] &quot;Pew  v.  Cardarelli,  527  F&quot;    NA   &quot;,&quot; 
+## [22,] &quot;Club v. Ruckelshaus, 344 F&quot;      NA   &quot;,&quot; 
+## [23,] &quot;Institute v. EPA, 568 F&quot;         NA   &quot;,&quot; 
+## [24,] &quot;Inc. v. FPC, 412 F&quot;              &quot;.&quot;  &quot;,&quot; 
+## [25,] &quot;Inc. v. EPA, 547 F&quot;              &quot;.&quot;  &quot;,&quot; 
+## [26,] &quot;Texas  v. \n \nEPA, 499 F&quot;       NA   &quot;,&quot; 
+## [27,] &quot;Club  v. \nRuckelshaus,  344  F&quot; NA   &quot;,&quot; 
+## [28,] &quot;Council  v.  EPA,  489  F&quot;       NA   &quot;,&quot; 
+## [29,] &quot;Corp. v. EPA, 523 F&quot;             &quot;.&quot;  &quot;,&quot; 
+## [30,] &quot;Corp.  v.  Train,  526 \nF&quot;      &quot;.&quot;  &quot;,&quot; 
+## [31,] &quot;Inc. \nv. EPA, 578 F&quot;            &quot;.&quot;  &quot;,&quot; 
+## [32,] &quot;Inc.  v.  EPA,  578  F&quot;          &quot;.&quot;  &quot;,&quot; 
+## [33,] &quot;Inc.  v.  EPA,  578  F&quot;          &quot;.&quot;  &quot;,&quot; 
 ## 
 ## [[3]]
-##      [,1]                         [,2] [,3]
-## [1,] &quot;Riethman v. Barry, 287 F&quot;   NA   &quot;,&quot; 
-## [2,] &quot;Shaumyan v. Sidetex, 900 F&quot; NA   &quot;,&quot; 
+##      [,1]                       [,2] [,3]
+## [1,] &quot;Bank  v.  Burke,  414  F&quot; NA   &quot;,&quot; 
+## [2,] &quot;Phipps v. FDIC, 417 F&quot;    NA   &quot;,&quot; 
+## [3,] &quot;OCC v. Spitzer, 396 F&quot;    NA   &quot;,&quot; 
+## [4,] &quot;Bank v. Burke, 414 F&quot;     NA   &quot;,&quot; 
+## [5,] &quot;Kelley  v.  EPA,  25  F&quot;  NA   &quot;,&quot; 
 ## 
 ## [[4]]
 ##      [,1]                         [,2] [,3]
-## [1,] &quot;Donvan v. Bierwirth, 680 F&quot; NA   &quot;,&quot; 
+## [1,] &quot;lnst.  v.  EPA, 452 F&quot;      &quot;.&quot;  &quot;,&quot; 
+## [2,] &quot;Auth. v.  EPA, 358 F&quot;       &quot;.&quot;  &quot;,&quot; 
+## [3,] &quot;Institute v.  CFTC,  720 F&quot; NA   &quot;,&quot; 
 ## 
 ## [[5]]
-##      [,1]                      [,2] [,3]
-## [1,] &quot;Corp. v. Sargeant, 20 F&quot; &quot;.&quot;  &quot;,&quot;</code></pre>
+##      [,1]                          [,2] [,3]
+## [1,] &quot;Assoc.  v.  Harris,  453  F&quot; &quot;.&quot;  &quot;,&quot; 
+## [2,] &quot;Venture\nv.  Smith, 452  F&quot;  NA   &quot;,&quot;</code></pre>
 <pre class="r"><code>show_regex_works(Code_of_Federal_Regulations, 5)</code></pre>
 <pre><code>## [[1]]
-##      [,1]           
-## [1,] &quot;12 CFR § 226&quot; 
-## [2,] &quot;12 CFR § 1026&quot;
+##      [,1]              
+## [1,] &quot;12 CFR 202&quot;      
+## [2,] &quot;29 C.F.R. § 1610&quot;
 ## 
 ## [[2]]
-##      [,1]            
-## [1,] &quot;12  CFR  §1&quot;   
-## [2,] &quot;12 CFR  §160&quot;  
-## [3,] &quot;12 CFR  §160&quot;  
-## [4,] &quot;12 CFR   § 161&quot;
-## [5,] &quot;26  CFR  §1&quot;   
+##      [,1]           
+## [1,] &quot;12 C.F.R. 360&quot;
 ## 
 ## [[3]]
-##      [,1]         
-## [1,] &quot;12 CFR 1003&quot;
+##      [,1]             
+## [1,] &quot;17 C.F.R. §270&quot; 
+## [2,] &quot;17 C.F.R. § 270&quot;
 ## 
 ## [[4]]
 ##      [,1]              
-## [1,] &quot;17C.F.R. § 230&quot;  
-## [2,] &quot;17C.FJR. § 230&quot;  
-## [3,] &quot;17 C.F.R.  § 230&quot;
+## [1,] &quot;12 C.F.R. § 1005&quot;
+## [2,] &quot;12 C.F.R. § 1005&quot;
 ## 
 ## [[5]]
-##      [,1]                
-## [1,] &quot;12 C.F.R. § \n1005&quot;
-## [2,] &quot;12 C.F.R. § 1005&quot;  
-## [3,] &quot;12 C.F.R. § 1005&quot;  
-## [4,] &quot;12 CFR 1005&quot;       
-## [5,] &quot;12 CFR 1005&quot;       
-## [6,] &quot;12 CFR 1005&quot;</code></pre>
+##      [,1]             
+## [1,] &quot;12 CFR § 1005&quot;  
+## [2,] &quot;12 C.F.R. § 205&quot;
+## [3,] &quot;12 CFR 7&quot;</code></pre>
 <pre class="r"><code>show_regex_works(Federal_Register, 5)</code></pre>
 <pre><code>## [[1]]
-##      [,1]                   
-## [1,] &quot;75 Fed. Reg. 84&quot;      
-## [2,] &quot;76 Fed. Reg. 151&quot;     
-## [3,] &quot;76  Fed.  Reg.  47948&quot;
+##      [,1]                
+## [1,] &quot;73 Fed. Reg. 80315&quot;
 ## 
 ## [[2]]
-##      [,1]               
-## [1,] &quot;76 Fed. Reg. \n29&quot;
-## [2,] &quot;49 Fed. Reg. 8595&quot;
-## [3,] &quot;71 Fed. Reg. 39&quot;  
-## [4,] &quot;49 Fed. Reg. 8595&quot;
+##       [,1]                   
+##  [1,] &quot;58  Fed. \n \nReg. 62&quot;
+##  [2,] &quot;58  Fed.  Reg.  63&quot;   
+##  [3,] &quot;58 Fed. Reg. 3782&quot;    
+##  [4,] &quot;58 Fed. Reg. 62&quot;      
+##  [5,] &quot;58  Fed.  Reg.  3768&quot; 
+##  [6,] &quot;58 Fed. Reg. \n13&quot;    
+##  [7,] &quot;58 Fed. Reg. 63&quot;      
+##  [8,] &quot;58 Fed. Reg. 63&quot;      
+##  [9,] &quot;58  Fed.  Reg.  63&quot;   
+## [10,] &quot;58 Fed. Reg. 63&quot;      
+## [11,] &quot;58  Fed.  Reg. \n63&quot;  
+## [12,] &quot;58  Fed.  Reg.  63&quot;   
+## [13,] &quot;58  Fed.  Reg.  63&quot;   
+## [14,] &quot;58  Fed.  Reg. \n63&quot;  
+## [15,] &quot;58 Fed. Reg. 63&quot;      
+## [16,] &quot;58 Fed. \nReg. 63&quot;    
+## [17,] &quot;58 Fed. \nReg. 63&quot;    
+## [18,] &quot;58  Fed.  Reg. \n63&quot;  
+## [19,] &quot;58 Fed. Reg. 63&quot;      
+## [20,] &quot;58  Fed.  Reg.  63&quot;   
+## [21,] &quot;45  Fed.  Reg.  76&quot;   
+## [22,] &quot;72 Fed. Reg. \n \n56&quot; 
+## [23,] &quot;21 Fed. Reg. 356&quot;     
 ## 
 ## [[3]]
-##      [,1]                  
-## [1,] &quot;76  Fed.  Reg. 68846&quot;
+##      [,1]                
+## [1,] &quot;75 Fed. Reg. 23328&quot;
 ## 
 ## [[4]]
-##      [,1]                
-## [1,] &quot;77 Fed. Reg. 38422&quot;
-## [2,] &quot;77 Fed. Reg. 38422&quot;
+##      [,1]             
+## [1,] &quot;81 Fed. Reg. 37&quot;
+## [2,] &quot;81 Fed. Reg. 37&quot;
+## [3,] &quot;76 Fed. Reg. 21&quot;
 ## 
 ## [[5]]
-##      [,1]                  
-## [1,] &quot;76 Fed. Reg. 8946&quot;   
-## [2,] &quot;75 Fed. Reg. 60287&quot;  
-## [3,] &quot;47 Fed. Reg. 11380&quot;  
-## [4,] &quot;70 Fed. Reg. \n44722&quot;</code></pre>
+##      [,1]                   
+## [1,] &quot;76 Fed. Reg.  33&quot;     
+## [2,] &quot;76 Fed. Reg.  33818&quot;  
+## [3,] &quot;75  Fed.  Reg.  75162&quot;
+## [4,] &quot;75  Fed. Reg. 75432&quot;</code></pre>
 <pre class="r"><code>attachments %&lt;&gt;%
   mutate(
     US_Code = str_count(string = attachment_text,
@@ -415,6 +464,11 @@ show_regex_works(US_Code_Regex, 5)</code></pre>
       Appeals_and_District_Court_Cases + Code_of_Federal_Regulations +
       Federal_Register_Total
   ) 
+
+bluebook &lt;- attachments %&gt;%
+  select(-attachment_text,-attachment_number)
+
+save(bluebook, file = &quot;/Users/stevenrashin/Documents/GitHub/Sophisticated_Commenters/bluebook.RData&quot;)
 
 #### Get stats for all citations
 

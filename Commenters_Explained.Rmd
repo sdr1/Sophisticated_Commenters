@@ -469,4 +469,5 @@ tech_in_one_column %>%
   stat_summary(fun=median, geom="point", size=2, color="red") +
   stat_summary(fun=mean, geom="point", size=2, color ="blue")
 
+save(Tables_and_Figures, technical_terms, file = "/Users/stevenrashin/Documents/GitHub/Sophisticated_Commenters/tech_iterations.RData")
 ```
